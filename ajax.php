@@ -12,11 +12,9 @@ $latestUsersTime = getUsersLatestContrib($nom, $wikisite, $pageId); //the last c
 
 
 /**
- *
- * This part of code is processing multiple queries simultaneously
+ * Processes multiple queries simultaneously
  * Grabs all the data from http://stats.grok.se regarding page views for each month of the year
  * and computes the sum of page views during the given year
- *
  */
 $total=0;
 if ($wikisite == 'http://en.wikipedia.org'){
@@ -69,9 +67,7 @@ $result0 =  $total; // the number of page views on the given page
 //end page views
 
 /**
- *
- * This part of code counts the number of modifications on the given page, during the given year
- *
+ * Counts the number of modifications on the given page, during the given year
  */
 $result1 = 0;
 $jsonurl = $wikisite."/w/api.php?action=query&prop=revisions&format=json&rvprop=ids%7Ctimestamp&rvlimit=max&rvstart=".$rvstart."&rvend=".$rvend."&rvdir=newer&pageids=".$pageId;
@@ -83,9 +79,7 @@ $countrevision = count($revision);
 $result1 = $countrevision;  // the number of modifications during the given year
 
 /**
- *
- * This part of code counts the number of modifications on the given page since the last contribution of the given user
- *
+ * Counts the number of modifications on the given page since the last contribution of the given user
  */
 $result2 = 0;
 $jsonurl = $wikisite."/w/api.php?action=query&prop=revisions&format=json&rvprop=ids%7Ctimestamp%7Cuser&rvlimit=max&rvstart=".$latestUsersTime."&rvdir=newer&pageids=".$pageId;
@@ -98,9 +92,7 @@ if(!is_null($revisions)){
 }
 
 /**
- *
  * This part of code counts the number of days since the last contribution on the given page
- *
  */
 $timestamp = '';
 $result3 = 0;
@@ -119,9 +111,7 @@ if($timestamp != ''){
 }
 
 /**
- *
  * This part of code counts the number of days since the user's last contribution on the given page
- *
  */
 $timestamp = '';
 $result4 = 0;
@@ -140,9 +130,7 @@ if($timestamp != ''){
 }
 
 /**
- *
  * This array is sent back to the affichage.php page as a response to the "plus()" function's ajax call
- *
  */
 $finalResult = array();
 $finalResult[] = $result0;  // the number of page views on the given page
