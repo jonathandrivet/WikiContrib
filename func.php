@@ -2,20 +2,18 @@
 ini_set('max_execution_time', 300);
 
 /**
- * Function name: user_exist
- *
  * Checks if the entered username is valid on the current wikisite
  *
- * @param $nom - username that is to be verified
- * @param $wikisite - website where the username is to be verified
- * @return bool - True if the username in valid, false otherwise
+ * @param $nom 		- username that is to be verified
+ * @param $wikisite 	- website where the username is to be verified
+ * @return bool 	- True if the username in valid, false otherwise
  */
 function user_exist($nom, $wikisite){
-	$jsonurl = $wikisite.'/w/api.php?action=query&list=users&format=json&usprop=registration&ususers='.$nom;
-	$json = curl_get_file_contents($jsonurl);
+    $jsonurl = $wikisite.'/w/api.php?action=query&list=users&format=json&usprop=registration&ususers='.$nom;
+    $json = curl_get_file_contents($jsonurl);
     $res = $json['content'];    //The json content received from the $jsonurl
     $obj = json_decode($res,true);
-	$user = $obj['query']['users'];
+    $user = $obj['query']['users'];
     if(isset($user[0])){
         $result = array_key_exists('registration',$user[0]);
     } else {
@@ -24,18 +22,15 @@ function user_exist($nom, $wikisite){
     return $result;
 }
 
-
 /**
- * Function name: curl_get_file_contents
+ * Grabs the data from a given URL
  *
- * Grabs the data from a given url
- *
- * @param $url - url that is to be processed
- * @return String - returns a json encoded string
+ * @param $url 		- the URL that is to be processed
+ * @return String 	- returns a json encoded string
  */
 function curl_get_file_contents( $url ){
     $options = array(
-        CURLOPT_RETURNTRANSFER => true,             // return web page
+        CURLOPT_RETURNTRANSFER => true,             // return the web page
         CURLOPT_HEADER         => false,            // don't return headers
         CURLOPT_FOLLOWLOCATION => true,             // follow redirects
         CURLOPT_ENCODING       => "",               // handle all encodings
@@ -61,28 +56,27 @@ function curl_get_file_contents( $url ){
 }
 
 /**
- * Function name: createdByUser
- *
- * This function is processing multiple queries simultaneously
- * Grabs all the contributions made by a given user, from a given url, in a given year
+ * Processes multiple queries simultaneously
+ * Grabs all the contributions made by a given user, from a given URL, in a given year
  * and keeps only the contributions where the ['parentid'] field will be equal to "0"
  *
- * @param $nom - the user that will be investigated
- * @param $wikisite - the website where the investigation will take place
- * @param $annee - year for which the investigation will take place
- * @return array - returns an array containing the page's id, title and the timestamp which indicates when the page was created
+ * @param $nom 		- the user that will be investigated
+ * @param $wikisite 	- the website where the investigation will take place
+ * @param $annee 	- the year for which the investigation will take place
+ * @return array 	- returns an array containing the page's id, title and the timestamp which indicates when the page was created
  */
 function createdByUser($nom,$wikisite,$annee){
     $nom = urlencode($nom);                 // some names can contain spaces
     $rvstart = $annee."-01-01T00:00:00Z";   // the beginning of the first year
     $anneefin = $annee + 1;
     $rvend = $anneefin."-01-01T00:00:00Z";  // the beginning of the second year
-    $nodes = array();   //list of urls needed to grab data
+    $nodes = array();   //list of URLs needed to grab data
 
     /**
-     * this loop creates a list of urls, each of them being a query for all user's contributions in a three-day period
-     * @var $currentDate - the beginning of the time interval for each query
-     * @var $newEndDate - the end of the time interval for each query
+     * Creates a list of URLs, each of them being a query for all user's contributions in a three-day period
+     * 
+     * @var $currentDate 	- the beginning of the time interval for each query
+     * @var $newEndDate 	- the end of the time interval for each query
      */
     for($currentDate = strtotime($rvstart); $currentDate <= strtotime($rvend); $currentDate += (60 * 60 * 24 * 3)){
         $year = gmdate('Y',$currentDate);
@@ -115,11 +109,10 @@ function createdByUser($nom,$wikisite,$annee){
         $newStartDate = $year."-".$month."-".$day."T".$hour.":".$min.":".$sec."Z";
 
         $jsonurl = $wikisite."/w/api.php?action=query&list=usercontribs&format=json&uclimit=max&ucstart=".$newStartDate."&ucend=".$newEndDate."&ucuser=".$nom."&ucnamespace=0&ucdir=newer&ucprop=ids%7Ctitle%7Ctimestamp";
-        $nodes[] = $jsonurl;    // add url to the list
+        $nodes[] = $jsonurl;    // add URL to the list
     }
 
-    // start processing multiple queries simultaneously
-    $mh = curl_multi_init();
+    $mh = curl_multi_init();    // starts processing multiple queries simultaneously
     $curl_array = array();
     foreach($nodes as $i => $url)
     {
@@ -151,21 +144,17 @@ function createdByUser($nom,$wikisite,$annee){
     foreach($nodes as $i => $url){
         curl_multi_remove_handle($mh, $curl_array[$i]);
     }
-    curl_multi_close($mh);
-    // stop processing multiple queries simultaneously
-
+    curl_multi_close($mh);	// stops processing multiple queries simultaneously
     return $result;
 }
 
 /**
- * Function name: getUsersLatestContrib
- *
  * Finds the date of the last contribution of the given user, on a given page, on a given website
  *
- * @param $user
- * @param $wikisite
- * @param $pageId
- * @return String  - returns a string of a wiki timestamp
+ * @param $user		- the username
+ * @param $wikisite	- the wikisite
+ * @param $pageId	- the page id
+ * @return String  	- returns a string of a wiki timestamp
  */
 function getUsersLatestContrib($user, $wikisite, $pageId){
     $result = '';
@@ -181,13 +170,11 @@ function getUsersLatestContrib($user, $wikisite, $pageId){
 
 /**
  * (currently not in use!)
- * Function name: getLatestContrib
- *
  * Finds the date of the last contribution on a given page, on a given website
  *
- * @param $wikisite
- * @param $pageId
- * @return String  - returns a string of a wiki timestamp
+ * @param $wikisite	- the wikisite
+ * @param $pageId	- the page id
+ * @return String  	- returns a string of a wiki timestamp
  */
 function getLatestContrib($wikisite, $pageId){
     $result = '';
@@ -202,12 +189,10 @@ function getLatestContrib($wikisite, $pageId){
 
 /**
  * (currently not in use!)
- * Function name: calcTimestampDiff
- *
  * Computes the difference in days between a wiki timestamp and today's date
  *
- * @param $timestamp
- * @return Integer  - returns a number of days since the given value of the timestamp
+ * @param $timestamp	-a wiki timestamp
+ * @return Integer  	- returns a number of days since the given value of the timestamp
  */
 function calcTimestampDiff($timestamp){
     $d1 = new DateTime($timestamp);
@@ -216,33 +201,38 @@ function calcTimestampDiff($timestamp){
     return $interval->days;
 }
 
-/*
-Fonction subscription:
-	permet de trouver la date d'inscription
-	et de la retourner en String
-*/
+/**
+ * Finds the date of inscription of a given username from a given wikisite
+ * 
+ * @param $name		- the username
+ * @param $wikisite	- the wikisite
+ * @return String	- the date of inscription
+ */
 function subscription($name,$wikisite){
-	    $jsonurl = $wikisite."/w/api.php?action=query&list=users&format=json&usprop=registration&ususers=".$name;
-		$json = file_get_contents($jsonurl, true);
-		$obj = json_decode($json,true);
-		$date = substr($obj['query']['users'][0]['registration'],0,10);
-		return $date;		
+    $jsonurl = $wikisite."/w/api.php?action=query&list=users&format=json&usprop=registration&ususers=".$name;
+    $json = file_get_contents($jsonurl, true);
+    $obj = json_decode($json,true);
+    $date = substr($obj['query']['users'][0]['registration'],0,10);
+    return $date;		
 }
-/*
-Fonction sexe:
-	permet de trouver la  sexe 
-	et de la retourner en String
-*/
+
+/**
+ * Finds the sex of the person behind a given username from a given wikisite
+ * 
+ * @param $name		- the username
+ * @param $wikisite	- the wikisite
+ * @return String	- the sex of the person behind the username
+ */
 function sexe($name,$wikisite){
-	    $jsonurl = $wikisite."/w/api.php?action=query&list=users&format=json&usprop=gender&ususers=".$name;
-		$json = file_get_contents($jsonurl, true);
-		$obj = json_decode($json,true);
-		$sexe = $obj['query']['users'][0]['gender'];
-		if($sexe == "male"){
-			return "Masculin";
-		}elseif($sexe=="female"){
-			return "Feminin";
-		}else{
-		return "Inconnu";
-		}
+    $jsonurl = $wikisite."/w/api.php?action=query&list=users&format=json&usprop=gender&ususers=".$name;
+    $json = file_get_contents($jsonurl, true);
+    $obj = json_decode($json,true);
+    $sexe = $obj['query']['users'][0]['gender'];
+    if($sexe == "male"){
+        return "Masculin";
+    }elseif($sexe=="female"){
+	return "Feminin";
+    }else{
+	return "Inconnu";
+    }
 }
